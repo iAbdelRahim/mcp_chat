@@ -35,23 +35,29 @@ def initialize_agent():
 # Initialiser l'agent une seule fois
 agent = initialize_agent()
 
-# Initialiser l'historique des messages
+# Initialiser l'historique de conversation
 if "messages" not in st.session_state:
-    st.session_state.messages = []
+    st.session_state.messages = [
+        {"role": "assistant", "content": "Bonjour ! Je suis votre assistant IA. Comment puis-je vous aider aujourd'hui ?"}
+    ]
 
 # Afficher l'historique des messages
 for message in st.session_state.messages:
     with st.chat_message(message["role"]):
         st.markdown(message["content"])
 
-# Fonction pour exécuter l'agent
-async def run_agent(question):
+# Fonction pour exécuter l'agent avec mémoire
+async def run_agent_with_memory(messages):
+    # Formater les messages pour l'agent
+    formatted_messages = [
+        {"role": msg["role"], "content": msg["content"]}
+        for msg in messages
+    ]
+    
     response = await agent.ainvoke({
-        "messages": [{
-            "role": "user", 
-            "content": question
-        }]
+        "messages": formatted_messages
     })
+    
     # Récupérer le contenu du dernier message AI
     return response['messages'][-1].content
 
@@ -75,7 +81,8 @@ if prompt := st.chat_input("Posez votre question ici"):
             loop = asyncio.new_event_loop()
             asyncio.set_event_loop(loop)
             try:
-                response = loop.run_until_complete(run_agent(prompt))
+                # Passer tout l'historique des messages à l'agent
+                response = loop.run_until_complete(run_agent_with_memory(st.session_state.messages))
                 
                 # Simuler l'effet de streaming
                 for chunk in response.split():
@@ -83,6 +90,9 @@ if prompt := st.chat_input("Posez votre question ici"):
                     message_placeholder.markdown(full_response + "▌")
                     time.sleep(0.05)
                 
+                message_placeholder.markdown(full_response)
+            except Exception as e:
+                full_response = f"⚠️ Erreur: {str(e)}"
                 message_placeholder.markdown(full_response)
             finally:
                 loop.close()
