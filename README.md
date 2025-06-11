@@ -75,3 +75,15 @@ This MCP server provides the following tools:
 It also provides the following resource:
 
 - `greeting://{name}`: Get a personalized greeting.
+
+## Contributors
+
+- Deepseek
+
+## TODOs
+
+- Add a "memory trimming" mechanism to limit the history length
+- Implement conversation summarization for long exchanges
+- Add an option to reset the conversation
+- Save history in persistent storage (database, file)
+- Format responses in Markdown
